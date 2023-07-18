@@ -3,3 +3,5 @@ curl -Lo hyperfine.deb "https://github.com/sharkdp/hyperfine/releases/latest/dow
 sudo apt install -y ./hyperfine.deb
 hyperfine --version
 rm -rf hyperfine.deb
+
+#  cargo b -r && hyperfine -N ./target/release/day1_bis
