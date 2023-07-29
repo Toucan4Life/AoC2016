@@ -2,7 +2,7 @@ use itertools::Itertools;
 use std::collections::HashMap;
 
 fn apply_direction(instruction: char, current_position: [i32; 2]) -> [i32; 2] {
-    return match instruction {
+    match instruction {
         'L' => [current_position[0], current_position[1] - 1],
         'R' => [current_position[0], current_position[1] + 1],
         'U' => [current_position[0] - 1, current_position[1]],
