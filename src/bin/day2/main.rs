@@ -19,12 +19,12 @@ impl From<char> for Direction {
     }
 }
 
-struct KeyPad {
-    keys: [[String; 5]; 5],
+struct KeyPad<'a> {
+    keys: [[Option<&'a str>; 5]; 5],
 }
 
-impl KeyPad {
-    fn new(keys: [[String; 5]; 5]) -> Self {
+impl KeyPad<'_> {
+    fn new(keys: [[Option<&str>; 5]; 5]) -> Self {
         Self { keys }
     }
 
@@ -37,13 +37,8 @@ impl KeyPad {
         }
     }
 
-    fn try_moving(&mut self, position: [i32; 2]) -> Option<String> {
-        let Some(row) = self.keys.get((position[0]) as usize) else{return None};
-        let Some(digit) = row.get((position[1]) as usize) else{return None};
-        if digit.is_empty() {
-            return None;
-        }
-        return Some(digit.to_string());
+    fn try_moving(&mut self, position: [i32; 2]) -> Option<&str> {
+        return *self.keys.get((position[0]) as usize)?.get((position[1]) as usize)?;
     }
 }
 
@@ -51,11 +46,11 @@ fn main() {
     let start_place = [2, 0];
 
     let mut key_pad = KeyPad::new([
-        [String::from(""),  String::from(""),  String::from("1"), String::from(""),  String::from("")],
-        [String::from(""),  String::from("2"), String::from("3"), String::from("4"), String::from("")],
-        [String::from("5"), String::from("6"), String::from("7"), String::from("8"), String::from("9")],
-        [String::from(""),  String::from("A"), String::from("B"), String::from("C"), String::from("")],
-        [String::from(""),  String::from(""),  String::from("D"), String::from(""),  String::from("")],
+        [None,  None,  Some("1"), None,  None],
+        [None,  Some("2"), Some("3"), Some("4"), None],
+        [Some("5"), Some("6"), Some("7"), Some("8"), Some("9")],
+        [None,  Some("A"),Some("B"),Some("C"), None],
+        [None,  None,  Some("D"), None,  None],
     ]);
 
     let code = include_str!("input.txt")
@@ -67,7 +62,7 @@ fn main() {
             return if let Some(digit) = key_pad.try_moving(digit_position) {
                 digit
             } else {
-                "".to_string()
+                ""
             };
         })
         .join("");
