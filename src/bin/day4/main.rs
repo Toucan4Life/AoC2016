@@ -3,16 +3,10 @@ use itertools::Itertools;
 fn most_freq(inp: &str) -> String {
     inp.chars()
         .filter(|&x| x != '-')
-        .fold(vec![0; 26], |mut acc, c| {
-            let idx = c as u8 - 'a' as u8;
-            acc[idx as usize] += 1;
-            acc
-        })
+        .into_grouping_map_by(|&x| x)
+        .fold(0, |acc, _key, _value| acc + 1)
         .into_iter()
-        .enumerate()
-        .map(|(i, freq)| ((i as u8 + 'a' as u8) as char, freq))
-        .sorted_by(|a, b| Ord::cmp(&b.1, &a.1))
-        .into_iter()
+        .sorted_by_key(|item| (-item.1, item.0))
         .take(5)
         .map(|(c, _)| c)
         .collect()
