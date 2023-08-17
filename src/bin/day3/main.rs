@@ -31,7 +31,7 @@ fn main() {
         .filter(|row2| {
             let mut row = row2.clone();
             row.sort();
-            return row[0] + row[1] > row[2];
+            row[0] + row[1] > row[2]
         })
         .count();
 
