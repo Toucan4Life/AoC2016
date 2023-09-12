@@ -1,4 +1,26 @@
 use itertools::Itertools;
+use std::str::FromStr;
+
+struct Room {
+    encrypted_name: String,
+    sector_id: i32,
+    checksum: String,
+}
+
+impl FromStr for Room {
+    type Err = std::num::ParseIntError;
+
+    fn from_str(line: &str) -> Result<Self, Self::Err> {
+        let (not_checksum, checksum) = line.split('[').collect_tuple().unwrap();
+        let (encrypted_name,sector_id) = not_checksum.rsplit_once('-').unwrap();
+ 
+        Ok(Room {
+            encrypted_name: encrypted_name.to_string(),
+            sector_id: sector_id.parse().unwrap(),
+            checksum: checksum[0..checksum.len() - 1].to_string(),
+        })
+    }
+}
 
 fn most_freq(inp: &str) -> String {
     inp.chars()
@@ -12,27 +34,26 @@ fn most_freq(inp: &str) -> String {
         .collect()
 }
 
-fn process_line(line: &str) -> bool {
-    let (mut room, mut check) = line.split('[').collect_tuple().unwrap();
-    room = room.split(char::is_numeric).collect_vec()[0];
-    check = &check[0..check.len() - 1];
-    let result = most_freq(room);
-    result == check
-}
 fn main() {
     //part 1
-    let code = include_str!("input.txt")
+    let code: i32 = include_str!("input.txt")
         .lines()
-        .filter(|line| process_line(line))
-        .count();
+        .map(|line| line.parse().unwrap())
+        .filter(is_real_room)
+        .map(|r| r.sector_id)
+        .sum();
 
     println!("{code}");
 }
 
+fn is_real_room(room: &Room) -> bool {
+    room.checksum == most_freq(&room.encrypted_name)
+}
+
 #[test]
 fn test_freq() {
-    assert_eq!(true, process_line("aaaaa-bbb-z-y-x-123[abxyz]"));
-    assert_eq!(true, process_line("a-b-c-d-e-f-g-h-987[abcde]"));
-    assert_eq!(true, process_line("not-a-real-room-404[oarel]"));
-    assert_eq!(false, process_line("totally-real-room-200[decoy]"));
+    assert_eq!(true, is_real_room(&"aaaaa-bbb-z-y-x-123[abxyz]".parse::<Room>().unwrap()));
+    assert_eq!(true, is_real_room(&"a-b-c-d-e-f-g-h-987[abcde]".parse::<Room>().unwrap()));
+    assert_eq!(true, is_real_room(&"not-a-real-room-404[oarel]".parse::<Room>().unwrap()));
+    assert_eq!(false, is_real_room(&"totally-real-room-200[decoy]".parse::<Room>().unwrap()));
 }
