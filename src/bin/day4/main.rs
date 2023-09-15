@@ -22,24 +22,43 @@ impl FromStr for Room {
     }
 }
 
-fn most_freq(inp: &str) -> String {
-    inp.chars()
-        .filter(|&x| x != '-')
-        .into_grouping_map_by(|&x| x)
-        .fold(0, |acc, _key, _value| acc + 1)
-        .into_iter()
-        .sorted_by_key(|item| (-item.1, item.0))
-        .take(5)
-        .map(|(c, _)| c)
-        .collect()
+impl Room {
+    fn is_real_room(&self) -> bool {
+        self.checksum
+            == self
+                .encrypted_name
+                .chars()
+                .filter(|&x| x != '-')
+                .into_grouping_map_by(|&x| x)
+                .fold(0, |acc, _key, _value| acc + 1)
+                .into_iter()
+                .sorted_by_key(|item| (-item.1, item.0))
+                .take(5)
+                .map(|(c, _)| c)
+                .collect::<String>()
+    }
+
+    fn decrypt(&self) -> String {
+        self.encrypted_name
+            .chars()
+            .map(|char| {
+                if char == '-' {
+                    ' '
+                } else {
+                    std::char::from_u32((char as u32 - 97 + self.sector_id) % 26 + 97)
+                        .unwrap()
+                }
+            })
+            .collect()
+    }
 }
 
 fn main() {
     //part 1
     let code: u32 = include_str!("input.txt")
         .lines()
-        .map(|line| line.parse().unwrap())
-        .filter(is_real_room)
+        .map(|line| line.parse::<Room>().unwrap())
+        .filter(|room| room.is_real_room())
         .map(|r| r.sector_id)
         .sum();
 
@@ -48,37 +67,19 @@ fn main() {
     //part 2
     include_str!("input.txt")
         .lines()
-        .map(|line| line.parse().unwrap())
-        .filter(is_real_room)
-        .map(|r| (decrypt(&r), r.sector_id))
-        .filter(|(name,_)| name.contains("north"))
-        .for_each(|(name,sector)| println!("{name}-{sector}"));
-}
-
-fn add1_char(c: char, pos: u32) -> char {
-    if c == '-' {
-        return ' ';
-    }
-    let i = (c as u32 - 97 + pos) % 26 + 97;
-    std::char::from_u32(i).unwrap_or(c)
-}
-
-fn decrypt(room: &Room) -> String {
-    room.encrypted_name
-        .chars()
-        .map(|char| add1_char(char, room.sector_id))
-        .collect()
-}
-
-fn is_real_room(room: &Room) -> bool {
-    room.checksum == most_freq(&room.encrypted_name)
+        .map(|line| line.parse::<Room>().unwrap())
+        .filter(|room| room.is_real_room() && room.decrypt().contains("north"))
+        .for_each(|room| println!("{0}-{1}", room.decrypt(), room.sector_id));
 }
 
 #[test]
 fn test_decrypt() {
     assert_eq!(
         "very encrypted name",
-        decrypt(&"qzmt-zixmtkozy-ivhz-343[abxyz]".parse::<Room>().unwrap())
+        "qzmt-zixmtkozy-ivhz-343[abxyz]"
+            .parse::<Room>()
+            .unwrap()
+            .decrypt()
     );
 }
 
@@ -86,18 +87,30 @@ fn test_decrypt() {
 fn test_freq() {
     assert_eq!(
         true,
-        is_real_room(&"aaaaa-bbb-z-y-x-123[abxyz]".parse::<Room>().unwrap())
+        "aaaaa-bbb-z-y-x-123[abxyz]"
+            .parse::<Room>()
+            .unwrap()
+            .is_real_room()
     );
     assert_eq!(
         true,
-        is_real_room(&"a-b-c-d-e-f-g-h-987[abcde]".parse::<Room>().unwrap())
+        "a-b-c-d-e-f-g-h-987[abcde]"
+            .parse::<Room>()
+            .unwrap()
+            .is_real_room()
     );
     assert_eq!(
         true,
-        is_real_room(&"not-a-real-room-404[oarel]".parse::<Room>().unwrap())
+        "not-a-real-room-404[oarel]"
+            .parse::<Room>()
+            .unwrap()
+            .is_real_room()
     );
     assert_eq!(
         false,
-        is_real_room(&"totally-real-room-200[decoy]".parse::<Room>().unwrap())
+        "totally-real-room-200[decoy]"
+            .parse::<Room>()
+            .unwrap()
+            .is_real_room()
     );
 }
