@@ -37,6 +37,8 @@ fn decrypt2(input: String) -> String {
 }
 
 fn main() {
+    let decrypted = decrypt(include_str!("input.txt").to_string());
+    println!("{decrypted}");
     let decrypted = decrypt2(include_str!("input.txt").to_string());
     println!("{decrypted}");
 }
