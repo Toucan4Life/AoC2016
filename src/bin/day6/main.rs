@@ -21,9 +21,32 @@ fn decrypt(input: String) -> String {
         .collect();
     transposed
 }
+fn decrypt2(input: String) -> String {
+    let chars: Vec<Vec<char>> = input
+        .lines()
+        .into_iter()
+        .map(|line| line.chars().collect_vec())
+        .collect_vec();
+    let transposed: String = transpose(chars)
+        .into_iter()
+        .map(|line| {
+            line.into_iter()
+                .into_grouping_map_by(|&x| x)
+                .fold(0, |acc, _key, _value| acc + 1)
+                .into_iter()
+                .sorted_by_key(|item| (item.1))
+                .take(1)
+                .map(|(c, _)| c)
+                .collect::<String>()
+        })
+        .collect();
+    transposed
+}
 
 fn main() {
     let decrypted = decrypt(include_str!("input.txt").to_string());
+    println!("{decrypted}");
+    let decrypted = decrypt2(include_str!("input.txt").to_string());
     println!("{decrypted}");
 }
 
@@ -42,6 +65,31 @@ fn test_decrypt() {
     assert_eq!(
         "easter",
         decrypt(
+            "eedadn
+drvtee
+eandsr
+raavrd
+atevrs
+tsrnev
+sdttsa
+rasrtv
+nssdts
+ntnada
+svetve
+tesnvt
+vntsnd
+vrdear
+dvrsen
+enarar"
+                .to_string()
+        )
+    );
+}
+#[test]
+fn test_decrypt2() {
+    assert_eq!(
+        "advent",
+        decrypt2(
             "eedadn
 drvtee
 eandsr
